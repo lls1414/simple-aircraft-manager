@@ -24,8 +24,8 @@ from core.action_registry import (
     register_read_pilot_write_owner,
 )
 from core.events import log_event
-from core.features import feature_available
-from core.models import AircraftEvent, KNOWN_FEATURES
+from core.features import feature_available, get_feature_catalog, get_known_feature_names
+from core.models import AircraftEvent
 from core.serializers import (
     AircraftNoteNestedSerializer,
     AircraftNoteCreateUpdateSerializer,
@@ -171,7 +171,8 @@ class HealthAircraftActionsMixin:
                 many=True,
                 context={'request': request}
             ).data,
-            'features': {f: feature_available(f, aircraft) for f in KNOWN_FEATURES},
+            'features': {f: feature_available(f, aircraft) for f in get_known_feature_names()},
+            'feature_catalog': get_feature_catalog(),
         })
 
     @action(detail=True, methods=['get'])
@@ -692,16 +693,22 @@ class HealthAircraftActionsMixin:
 
         aircraft = self.get_object()
 
+        catalog = get_feature_catalog()
+        known_names = [f['name'] for f in catalog]
+
         if request.method == 'GET':
-            return Response({'features': {f: feature_available(f, aircraft) for f in KNOWN_FEATURES}})
+            return Response({
+                'features': {f: feature_available(f, aircraft) for f in known_names},
+                'feature_catalog': catalog,
+            })
 
         # POST — owner only (enforced by registry)
         feature_name = request.data.get('feature')
         enabled = request.data.get('enabled')
 
-        if feature_name not in KNOWN_FEATURES:
+        if feature_name not in known_names:
             return Response(
-                {'error': f'Unknown feature. Valid features: {KNOWN_FEATURES}'},
+                {'error': f'Unknown feature. Valid features: {known_names}'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if not isinstance(enabled, bool):
@@ -725,7 +732,10 @@ class HealthAircraftActionsMixin:
             f"Feature {'enabled' if enabled else 'disabled'}: {feature_name}",
             user=request.user,
         )
-        return Response({'features': {f: feature_available(f, aircraft) for f in KNOWN_FEATURES}})
+        return Response({
+            'features': {f: feature_available(f, aircraft) for f in known_names},
+            'feature_catalog': catalog,
+        })
 
     @action(detail=True, methods=['get'])
     def events(self, request, pk=None):

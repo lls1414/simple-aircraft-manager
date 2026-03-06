@@ -9,8 +9,8 @@ from django.views import View
 from rest_framework.parsers import JSONParser
 from rest_framework.request import Request
 
-from core.features import feature_available
-from core.models import AircraftShareToken, KNOWN_FEATURES
+from core.features import feature_available, get_feature_catalog, get_known_feature_names
+from core.models import AircraftShareToken
 from core.serializers import AircraftSerializer, AircraftNoteNestedSerializer
 from core.sharing import validate_share_token
 from health.models import (
@@ -165,7 +165,8 @@ class PublicAircraftSummaryAPI(View):
 
         summary_data = {
             'aircraft': AircraftSerializer(aircraft, context={'request': drf_request}).data,
-            'features': {f: feature_available(f, aircraft) for f in KNOWN_FEATURES},
+            'features': {f: feature_available(f, aircraft) for f in get_known_feature_names()},
+            'feature_catalog': get_feature_catalog(),
             'components': ComponentSerializer(
                 aircraft.components.all(), many=True,
                 context={'request': drf_request}

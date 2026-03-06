@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.urls import reverse
 
-from .models import Aircraft, AircraftNote, AircraftEvent, AircraftRole, AircraftShareToken, InvitationCode, InvitationCodeAircraftRole, InvitationCodeRedemption, KNOWN_FEATURES
+from .models import Aircraft, AircraftNote, AircraftEvent, AircraftRole, AircraftShareToken, InvitationCode, InvitationCodeAircraftRole, InvitationCodeRedemption
 from core.features import feature_available
 from health.serializer_mixins import AirworthinessMixin
 
@@ -102,7 +102,8 @@ class AircraftListSerializer(AirworthinessMixin, UserRoleMixin, serializers.Hype
         ]
 
     def get_features(self, obj):
-        return {f: feature_available(f, obj) for f in KNOWN_FEATURES}
+        from core.features import get_known_feature_names
+        return {f: feature_available(f, obj) for f in get_known_feature_names()}
 
     def get_has_share_links(self, obj):
         role = self.get_user_role(obj)

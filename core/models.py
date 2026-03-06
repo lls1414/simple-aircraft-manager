@@ -127,16 +127,6 @@ class AircraftShareToken(models.Model):
         return f"{self.aircraft.tail_number} - {self.label or self.privilege} share token"
 
 
-KNOWN_FEATURES = [
-    'flight_tracking',
-    'oil_consumption',
-    'fuel_consumption',
-    'oil_analysis',
-    'airworthiness_enforcement',
-    'sharing',
-]
-
-
 class AircraftFeature(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     aircraft = models.ForeignKey(Aircraft, on_delete=models.CASCADE, related_name='features')

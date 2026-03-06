@@ -113,6 +113,28 @@ class SAMPluginConfig(AppConfig):
     aircraft_tabs: list = []
     aircraft_js_files: list = []
 
+    # --- Feature flags ---
+    # List of per-aircraft feature flag definitions contributed by this plugin.
+    # Each entry is a dict with:
+    #   name        (str, required) — unique slug; used in DB / API
+    #   label       (str, required) — human-readable display name shown in Settings
+    #   description (str, required) — one-line description shown below the label
+    #
+    # Example::
+    #
+    #     aircraft_features = [
+    #         {
+    #             'name': 'engine_monitor',
+    #             'label': 'Engine Monitor',
+    #             'description': 'EGT/CHT trend charts and alert thresholds',
+    #         },
+    #     ]
+    #
+    # Once registered the feature slug works with ``feature_available()`` and
+    # appears on the aircraft Settings tab alongside built-in features.
+    # Access it in Alpine.js via ``this.features['engine_monitor']`` (bool).
+    aircraft_features: list = []
+
     # --- Dashboard ---
     aircraft_dashboard_tiles: list = []
     global_dashboard_tiles: list = []
@@ -132,13 +154,35 @@ class PluginRegistry:
 
     def __init__(self):
         self._plugins: list[SAMPluginConfig] = []
+        self._feature_catalog: list[dict] = []
+
+    def register_features(self, features: list) -> None:
+        """Append feature dicts to the catalog.
+
+        Each dict must have 'name', 'label', and 'description' keys.
+        Called by CoreConfig.ready() for built-in features and by
+        SAMPluginConfig.ready() for plugin-defined features.
+        """
+        self._feature_catalog.extend(features)
 
     def register(self, config: SAMPluginConfig) -> None:
         self._plugins.append(config)
+        if config.aircraft_features:
+            self.register_features(config.aircraft_features)
 
     @property
     def plugins(self) -> list:
         return list(self._plugins)
+
+    @property
+    def feature_catalog(self) -> list:
+        """All registered feature dicts (builtins first, then plugins)."""
+        return list(self._feature_catalog)
+
+    @property
+    def known_feature_names(self) -> list:
+        """All registered feature name slugs."""
+        return [f['name'] for f in self._feature_catalog]
 
     # --- Aggregated extension-point accessors ---
 

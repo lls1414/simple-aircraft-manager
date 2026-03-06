@@ -2,8 +2,10 @@
 import pytest
 from unittest.mock import patch
 
-from core.features import feature_available
-from core.models import AircraftFeature, KNOWN_FEATURES
+from core.features import feature_available, get_known_feature_names
+from core.models import AircraftFeature
+
+KNOWN_FEATURES = get_known_feature_names()
 
 
 # ---------------------------------------------------------------------------

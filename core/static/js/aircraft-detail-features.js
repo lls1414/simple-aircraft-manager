@@ -3,27 +3,13 @@ function featuresMixin() {
         featureSaving: false,
 
         featureLabel(name) {
-            const labels = {
-                flight_tracking: 'Flight Tracking',
-                oil_consumption: 'Oil Consumption',
-                fuel_consumption: 'Fuel Consumption',
-                oil_analysis: 'Oil Analysis',
-                airworthiness_enforcement: 'Airworthiness Enforcement',
-                sharing: 'Public Sharing',
-            };
-            return labels[name] || name;
+            const entry = this.featureCatalog.find(f => f.name === name);
+            return entry ? entry.label : name;
         },
 
         featureDescription(name) {
-            const descriptions = {
-                flight_tracking: 'Flight log tab and Log Flight button',
-                oil_consumption: 'Oil usage records and consumption chart',
-                fuel_consumption: 'Fuel usage records and burn rate chart',
-                oil_analysis: 'Oil analysis lab report tracking',
-                airworthiness_enforcement: 'Block flight logging and hour updates when aircraft is grounded',
-                sharing: 'Share links and public access',
-            };
-            return descriptions[name] || '';
+            const entry = this.featureCatalog.find(f => f.name === name);
+            return entry ? entry.description : '';
         },
 
         async toggleFeature(featureName, enabled) {
@@ -38,6 +24,7 @@ function featuresMixin() {
                 );
                 if (!ok) throw data;
                 this.features = data.features;
+                if (data.feature_catalog) this.featureCatalog = data.feature_catalog;
 
                 showNotification(
                     `Feature "${this.featureLabel(featureName)}" ${enabled ? 'enabled' : 'disabled'}`,

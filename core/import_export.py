@@ -382,7 +382,8 @@ def _run_import(job, zip_path, owner_user, tail_number_override, ev):
         DocumentImage, LogbookEntry, Squawk, InspectionType, InspectionRecord,
         AD, ADCompliance, ConsumableRecord, MajorRepairAlteration, OilAnalysisReport, FlightLog,
     )
-    from core.models import Aircraft, AircraftNote, AircraftRole, AircraftFeature, KNOWN_FEATURES
+    from core.models import Aircraft, AircraftNote, AircraftRole, AircraftFeature
+    from core.features import get_known_feature_names
     from core.events import log_event
 
     max_size = getattr(settings, 'IMPORT_MAX_ARCHIVE_SIZE', 10 * 1024 * 1024 * 1024)
@@ -1137,7 +1138,7 @@ def _run_import(job, zip_path, owner_user, tail_number_override, ev):
                 for feat_data in manifest.get('features', []):
                     feature = feat_data.get('feature')
                     enabled = feat_data.get('enabled')
-                    if feature in KNOWN_FEATURES and isinstance(enabled, bool):
+                    if feature in get_known_feature_names() and isinstance(enabled, bool):
                         AircraftFeature.objects.create(
                             aircraft=new_aircraft,
                             feature=feature,

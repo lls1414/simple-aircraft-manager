@@ -40,6 +40,7 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
             loading: true,
             activeTab: 'overview',
             features: {},
+            featureCatalog: [],
 
             // Tab consolidation: map activeTab values to primary tab groups.
             // Plugin sub-tabs registered via window.SAMPluginTabMappings are merged in.
@@ -209,6 +210,7 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
                 this.activeSquawks = data.active_squawks;
                 this.aircraftNotes = data.notes || [];
                 this.features = data.features || {};
+                this.featureCatalog = data.feature_catalog || [];
 
                 // Refresh recent events (non-blocking)
                 this.loadRecentEvents();
@@ -263,6 +265,7 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
                 this.oilAnalysisLoaded = true;
 
                 this.features = data.features || {};
+                this.featureCatalog = data.feature_catalog || [];
 
                 this.rolesLoaded = true;
                 this.eventsLoaded = true;
