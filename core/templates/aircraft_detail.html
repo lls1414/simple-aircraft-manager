@@ -93,6 +93,12 @@
                             @click="switchPrimaryTab('flights'); openFlightLogModal()">
                         <i class="fas fa-plane"></i> Log Flight
                     </button>
+                    <button class="pf-v5-c-button pf-m-primary"
+                            x-show="!isPublicView && canUpdateHours && !featureFlightTracking"
+                            :disabled="aircraft?.airworthiness?.status === 'RED' && featureAirworthinessEnforcement"
+                            @click="openHoursModal()">
+                        <i class="fas fa-tachometer-alt"></i> Update Hours
+                    </button>
                     <button class="pf-v5-c-button pf-m-secondary"
                             x-show="canUpdateHours || isOwner"
                             @click="headerMenuOpen = !headerMenuOpen"
