@@ -39,6 +39,7 @@ KNOWN_MANIFEST_KEYS = {
     'document_images', 'logbook_entries', 'squawks', 'inspection_types',
     'inspection_records', 'ads', 'ad_compliances', 'consumable_records',
     'major_records', 'notes', 'oil_analysis_reports', 'flight_logs',
+    'features',
 }
 
 # Per-entity record count limits (configurable in settings)
@@ -194,7 +195,8 @@ def validate_archive_quick(zip_path, tail_number_override=None):
 
         # 6. Required top-level keys
         # flight_logs was added in schema v2; v1 manifests may omit it
-        required_keys = KNOWN_MANIFEST_KEYS - ({'flight_logs'} if version < 2 else set())
+        # features is always optional for backward compat
+        required_keys = KNOWN_MANIFEST_KEYS - ({'flight_logs'} if version < 2 else set()) - {'features'}
         missing_keys = required_keys - set(manifest.keys())
         if missing_keys:
             return None, None, f"manifest.json is missing required keys: {sorted(missing_keys)}"
@@ -380,7 +382,7 @@ def _run_import(job, zip_path, owner_user, tail_number_override, ev):
         DocumentImage, LogbookEntry, Squawk, InspectionType, InspectionRecord,
         AD, ADCompliance, ConsumableRecord, MajorRepairAlteration, OilAnalysisReport, FlightLog,
     )
-    from core.models import Aircraft, AircraftNote, AircraftRole
+    from core.models import Aircraft, AircraftNote, AircraftRole, AircraftFeature, KNOWN_FEATURES
     from core.events import log_event
 
     max_size = getattr(settings, 'IMPORT_MAX_ARCHIVE_SIZE', 10 * 1024 * 1024 * 1024)
@@ -1130,6 +1132,17 @@ def _run_import(job, zip_path, owner_user, tail_number_override, ev):
                                 warnings.append(f"FlightLog {fl_data.get('id', '?')}: {err}")
                     new_fl.save()
                 counts['flight_logs'] = len(flight_logs_data)
+
+                # --- Features -----------------------------------------------
+                for feat_data in manifest.get('features', []):
+                    feature = feat_data.get('feature')
+                    enabled = feat_data.get('enabled')
+                    if feature in KNOWN_FEATURES and isinstance(enabled, bool):
+                        AircraftFeature.objects.create(
+                            aircraft=new_aircraft,
+                            feature=feature,
+                            enabled=enabled,
+                        )
 
                 # --- Log import event ---------------------------------------
                 count_summary = ', '.join(f"{v} {k}" for k, v in counts.items() if v)

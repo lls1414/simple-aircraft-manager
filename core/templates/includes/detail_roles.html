@@ -1,11 +1,42 @@
-    <!-- Sharing & Access Tab -->
+    <!-- Settings Tab -->
     <div x-show="activeTab === 'roles'" class="pf-v5-c-page__main-section">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2>Sharing &amp; Access</h2>
+            <h2>Settings</h2>
+        </div>
+
+        <!-- Feature Settings Card -->
+        <div class="pf-v5-c-card" style="margin-bottom: 1rem;">
+            <div class="pf-v5-c-card__header">
+                <div class="pf-v5-c-card__header-main">
+                    <div class="pf-v5-c-card__title"><h3 class="pf-v5-c-card__title-text">Feature Settings</h3></div>
+                </div>
+            </div>
+            <div class="pf-v5-c-card__body">
+                <p class="pf-v5-u-color-200" style="margin-bottom: 1rem;">
+                    Enable or disable features for this aircraft.
+                </p>
+                <template x-for="[fname, fenabled] in Object.entries(features)" :key="fname">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:0.75rem 0; border-bottom:1px solid var(--pf-v5-global--BorderColor--100);">
+                        <div style="flex:1; min-width:0; margin-right:2rem;">
+                            <div style="font-weight:500;" x-text="featureLabel(fname)"></div>
+                            <div class="pf-v5-u-color-200" style="font-size:0.85rem; margin-top:0.2rem;" x-text="featureDescription(fname)"></div>
+                        </div>
+                        <label class="pf-v5-c-switch" style="margin-bottom:0; flex-shrink:0;">
+                            <input class="pf-v5-c-switch__input" type="checkbox"
+                                   :checked="fenabled"
+                                   :disabled="featureSaving"
+                                   @change="toggleFeature(fname, $event.target.checked)">
+                            <span class="pf-v5-c-switch__toggle"></span>
+                            <span class="pf-v5-c-switch__label pf-m-on" aria-hidden="true">On</span>
+                            <span class="pf-v5-c-switch__label pf-m-off" aria-hidden="true">Off</span>
+                        </label>
+                    </div>
+                </template>
+            </div>
         </div>
 
         <!-- Share Links Card -->
-        <div class="pf-v5-c-card" style="margin-bottom: 1rem;">
+        <div class="pf-v5-c-card" x-show="featureSharing" style="margin-bottom: 1rem;">
             <div class="pf-v5-c-card__header">
                 <div class="pf-v5-c-card__header-main">
                     <div class="pf-v5-c-card__title"><h3 class="pf-v5-c-card__title-text">Share Links</h3></div>

@@ -185,6 +185,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Aircraft creation permission: 'any', 'owners', or 'admin'
 AIRCRAFT_CREATE_PERMISSION = os.environ.get('AIRCRAFT_CREATE_PERMISSION', 'any')
 
+# Per-aircraft feature flags — comma-separated list of feature names to disable globally
+_disabled_features_env = os.environ.get('DISABLED_FEATURES', '')
+DISABLED_FEATURES = [f.strip() for f in _disabled_features_env.split(',') if f.strip()]
+
 # Aircraft import/export settings
 IMPORT_STAGING_DIR = os.environ.get(
     'IMPORT_STAGING_DIR',

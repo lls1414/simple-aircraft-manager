@@ -16,4 +16,7 @@ def validate_share_token(share_token):
         return None, JsonResponse({'error': 'Not found'}, status=404)
     if token_obj.expires_at and token_obj.expires_at < timezone.now():
         return None, JsonResponse({'error': 'Not found'}, status=404)
+    from core.features import feature_available
+    if not feature_available('sharing', token_obj.aircraft):
+        return None, JsonResponse({'error': 'Not found'}, status=404)
     return token_obj, None

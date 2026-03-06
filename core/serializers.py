@@ -27,6 +27,7 @@ class AircraftSerializer(AirworthinessMixin, UserRoleMixin, serializers.Hyperlin
     events = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     roles = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
     flight_logs = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    features = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Aircraft
@@ -61,6 +62,7 @@ class AircraftSerializer(AirworthinessMixin, UserRoleMixin, serializers.Hyperlin
                 'documents',
                 'applicable_inspections',
                 'flight_logs',
+                'features',
                 ]
         depth = 1
 

@@ -368,7 +368,7 @@ def build_manifest(aircraft):
         LogbookEntry, Squawk, InspectionType, InspectionRecord, AD, ADCompliance,
         ConsumableRecord, MajorRepairAlteration, OilAnalysisReport, FlightLog,
     )
-    from core.models import AircraftNote
+    from core.models import AircraftNote, AircraftFeature
 
     # --- Fetch all related objects -----------------------------------------
     components = list(
@@ -430,6 +430,7 @@ def build_manifest(aircraft):
     )
     oil_analysis_reports = list(OilAnalysisReport.objects.filter(aircraft=aircraft))
     flight_logs = list(FlightLog.objects.filter(aircraft=aircraft))
+    aircraft_features = list(AircraftFeature.objects.filter(aircraft=aircraft))
 
     # --- Build manifest -----------------------------------------------------
     request_host = getattr(settings, 'ALLOWED_HOSTS', [''])[0] or ''
@@ -455,6 +456,10 @@ def build_manifest(aircraft):
         'notes': [_note_dict(n) for n in notes],
         'oil_analysis_reports': [_oil_analysis_report_dict(r) for r in oil_analysis_reports],
         'flight_logs': [_flight_log_dict(fl) for fl in flight_logs],
+        'features': [
+            {'feature': f.feature, 'enabled': f.enabled}
+            for f in aircraft_features
+        ],
     }
     return manifest
 

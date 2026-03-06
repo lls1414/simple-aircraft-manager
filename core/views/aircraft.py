@@ -11,6 +11,7 @@ from rest_framework.response import Response
 
 from core.action_registry import get_action_permissions
 from core.events import log_event
+from core.features import feature_available
 from core.models import Aircraft, AircraftRole, AircraftShareToken
 from core.permissions import (
     get_user_role, has_aircraft_permission, user_can_create_aircraft,
@@ -174,6 +175,13 @@ class AircraftViewSet(HealthAircraftActionsMixin, viewsets.ModelViewSet):
             tokens = aircraft.share_tokens.all()
             return Response(
                 AircraftShareTokenSerializer(tokens, many=True, context={'request': request}).data
+            )
+
+        # POST: check sharing feature is enabled
+        if not feature_available('sharing', aircraft):
+            return Response(
+                {'error': 'Sharing is disabled for this aircraft.'},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         # POST: create a new token

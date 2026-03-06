@@ -18,6 +18,7 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
         eventsMixin(),
         rolesMixin(),
         flightsMixin(),
+        featuresMixin(),
 
         // Core state and methods (last so they win on any key collision)
         {
@@ -33,6 +34,7 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
             resolvedSquawks: [],
             loading: true,
             activeTab: 'overview',
+            features: {},
 
             // Tab consolidation: map activeTab values to primary tab groups
             _primaryTabMap: {
@@ -68,6 +70,12 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
                 return this.primaryTabFor(this.activeTab);
             },
             switchPrimaryTab(primary) {
+                if (primary === 'consumables') {
+                    this.activeTab = this.featureOilConsumption ? 'oil'
+                                   : this.featureFuelConsumption ? 'fuel'
+                                   : this.featureOilAnalysis ? 'oil-analysis' : 'oil';
+                    return;
+                }
                 this.activeTab = this._primaryTabDefaults[primary] || primary;
             },
             get complianceIssueCount() {
@@ -89,6 +97,15 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
             get canCreateSquawk() { return this.isOwner || this.isPilot; },
             get canCreateConsumable() { return this.isOwner || this.isPilot; },
             get canCreateNote() { return this.isOwner || this.isPilot; },
+
+            // Feature flag getters (default true when not yet loaded or explicitly set)
+            get featureFlightTracking()           { return this.features.flight_tracking !== false; },
+            get featureOilConsumption()           { return this.features.oil_consumption !== false; },
+            get featureFuelConsumption()          { return this.features.fuel_consumption !== false; },
+            get featureOilAnalysis()              { return this.features.oil_analysis !== false; },
+            get featureAirworthinessEnforcement() { return this.features.airworthiness_enforcement !== false; },
+            get featureSharing()                  { return this.features.sharing !== false; },
+            get anyConsumableFeatureEnabled()     { return this.featureOilConsumption || this.featureFuelConsumption || this.featureOilAnalysis; },
 
             async init() {
                 await this.loadData();
@@ -151,7 +168,7 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
                 });
 
                 // Open flight log modal when navigated here with #log-flight
-                if (window.location.hash === '#log-flight' && this.canCreateConsumable) {
+                if (window.location.hash === '#log-flight' && this.canCreateConsumable && this.featureFlightTracking) {
                     history.replaceState(null, '', window.location.pathname);
                     this.$nextTick(() => {
                         this.switchPrimaryTab('flights');
@@ -185,6 +202,7 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
                 this.recentLogs = data.recent_logs;
                 this.activeSquawks = data.active_squawks;
                 this.aircraftNotes = data.notes || [];
+                this.features = data.features || {};
 
                 // Refresh recent events (non-blocking)
                 this.loadRecentEvents();
@@ -237,6 +255,8 @@ function aircraftDetail(aircraftId, shareToken, privilegeLevel) {
                     c => c.tbo_critical && c.status === 'IN-USE'
                 );
                 this.oilAnalysisLoaded = true;
+
+                this.features = data.features || {};
 
                 this.rolesLoaded = true;
                 this.eventsLoaded = true;

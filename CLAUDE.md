@@ -223,7 +223,21 @@ Documents have `collection` FK set or `collection=null` (uncollected). Both retu
 
 `AircraftSerializer` uses `depth = 1`. Any new reverse relation from Aircraft to a model with a `User` FK causes a 500 (DRF tries to generate `user-detail` URL; no endpoint exists). Fix: declare the relation as `PrimaryKeyRelatedField(many=True, read_only=True)` explicitly on `AircraftSerializer`.
 
-### 8. Keep Import/Export in Sync with Model Schema
+### 8. `apiRequest` Signature — Options Object, Not Positional Args
+
+`apiRequest(url, options)` in `utils.js` takes an **options object** as its second argument (same shape as `fetch`). Passing positional args like `apiRequest(url, 'POST', body)` silently falls back to GET with no body — the second arg becomes the options object (a string), `options.method` is `undefined`, `options.body` is `undefined`.
+
+**Correct usage:**
+```javascript
+const { ok, data } = await apiRequest(url, {
+    method: 'POST',
+    body: JSON.stringify({ key: value }),
+});
+```
+
+This is especially easy to get wrong for write actions (POST/PATCH/DELETE) that pass a request body. The Content-Type header is set automatically when `body` is a non-FormData value.
+
+### 9. Keep Import/Export in Sync with Model Schema
 
 `core/export.py` and `core/import_export.py` manually map model fields to/from dict keys. They are **not** auto-generated and will silently break if model fields are renamed or replaced. **Whenever a model field is added, renamed, or removed, update both files:**
 

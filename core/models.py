@@ -127,6 +127,34 @@ class AircraftShareToken(models.Model):
         return f"{self.aircraft.tail_number} - {self.label or self.privilege} share token"
 
 
+KNOWN_FEATURES = [
+    'flight_tracking',
+    'oil_consumption',
+    'fuel_consumption',
+    'oil_analysis',
+    'airworthiness_enforcement',
+    'sharing',
+]
+
+
+class AircraftFeature(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    aircraft = models.ForeignKey(Aircraft, on_delete=models.CASCADE, related_name='features')
+    feature = models.CharField(max_length=50)
+    enabled = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, editable=False
+    )
+
+    class Meta:
+        unique_together = ('aircraft', 'feature')
+        ordering = ['feature']
+
+    def __str__(self):
+        return f"{self.aircraft.tail_number} - {self.feature} ({'on' if self.enabled else 'off'})"
+
+
 class InvitationCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)

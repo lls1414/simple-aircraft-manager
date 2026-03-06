@@ -88,8 +88,8 @@
                      @keydown.escape.window="headerMenuOpen = false"
                      @click.outside="headerMenuOpen = false">
                     <button class="pf-v5-c-button pf-m-primary"
-                            x-show="!isPublicView && canCreateConsumable"
-                            :disabled="aircraft?.airworthiness?.status === 'RED'"
+                            x-show="!isPublicView && canCreateConsumable && featureFlightTracking"
+                            :disabled="aircraft?.airworthiness?.status === 'RED' && featureAirworthinessEnforcement"
                             @click="switchPrimaryTab('flights'); openFlightLogModal()">
                         <i class="fas fa-plane"></i> Log Flight
                     </button>
@@ -106,14 +106,14 @@
                         <ul class="pf-v5-c-menu__list">
                             <li class="pf-v5-c-menu__list-item" x-show="canUpdateHours">
                                 <button class="pf-v5-c-menu__item"
-                                        :style="aircraft?.airworthiness?.status === 'RED' ? 'opacity: 0.5; cursor: not-allowed;' : ''"
-                                        @click="if (aircraft?.airworthiness?.status !== 'RED') { headerMenuOpen = false; openHoursModal(); }"
-                                        :disabled="aircraft?.airworthiness?.status === 'RED'"
-                                        :aria-disabled="aircraft?.airworthiness?.status === 'RED'">
+                                        :style="aircraft?.airworthiness?.status === 'RED' && featureAirworthinessEnforcement ? 'opacity: 0.5; cursor: not-allowed;' : ''"
+                                        @click="if (!(aircraft?.airworthiness?.status === 'RED' && featureAirworthinessEnforcement)) { headerMenuOpen = false; openHoursModal(); }"
+                                        :disabled="aircraft?.airworthiness?.status === 'RED' && featureAirworthinessEnforcement"
+                                        :aria-disabled="aircraft?.airworthiness?.status === 'RED' && featureAirworthinessEnforcement">
                                     <span class="pf-v5-c-menu__item-main">
                                         <span class="pf-v5-c-menu__item-text"><i class="fas fa-tachometer-alt" style="width: 1rem; margin-right: 0.5rem;"></i>Update Hours</span>
                                     </span>
-                                    <template x-if="aircraft?.airworthiness?.status === 'RED'">
+                                    <template x-if="aircraft?.airworthiness?.status === 'RED' && featureAirworthinessEnforcement">
                                         <span class="pf-v5-c-menu__item-description">Aircraft is grounded</span>
                                     </template>
                                 </button>
@@ -166,7 +166,7 @@
                         <span class="pf-v5-c-tabs__item-text">Overview</span>
                     </button>
                 </li>
-                <li class="pf-v5-c-tabs__item" x-show="!isPublicView" :class="{ 'pf-m-current': activePrimaryTab === 'flights' }">
+                <li class="pf-v5-c-tabs__item" x-show="!isPublicView && featureFlightTracking" :class="{ 'pf-m-current': activePrimaryTab === 'flights' }">
                     <button class="pf-v5-c-tabs__link" @click="switchPrimaryTab('flights')">
                         <span class="pf-v5-c-tabs__item-text">Flights</span>
                     </button>
@@ -179,7 +179,7 @@
                         </template>
                     </button>
                 </li>
-                <li class="pf-v5-c-tabs__item" :class="{ 'pf-m-current': activePrimaryTab === 'consumables' }">
+                <li class="pf-v5-c-tabs__item" x-show="anyConsumableFeatureEnabled" :class="{ 'pf-m-current': activePrimaryTab === 'consumables' }">
                     <button class="pf-v5-c-tabs__link" @click="switchPrimaryTab('consumables')">
                         <span class="pf-v5-c-tabs__item-text">Health</span>
                     </button>
@@ -209,7 +209,7 @@
                 </li>
                 <li class="pf-v5-c-tabs__item" x-show="isOwner" :class="{ 'pf-m-current': activePrimaryTab === 'roles' }">
                     <button class="pf-v5-c-tabs__link" @click="switchPrimaryTab('roles')">
-                        <span class="pf-v5-c-tabs__item-text">Sharing &amp; Access</span>
+                        <span class="pf-v5-c-tabs__item-text">Settings</span>
                     </button>
                 </li>
             </ul>
@@ -256,6 +256,7 @@
 <script src="{% static 'js/aircraft-detail-events.js' %}"></script>
 <script src="{% static 'js/aircraft-detail-roles.js' %}"></script>
 <script src="{% static 'js/aircraft-detail-flights.js' %}"></script>
+<script src="{% static 'js/aircraft-detail-features.js' %}"></script>
 <script src="{% static 'js/aircraft-switcher.js' %}"></script>
 <script src="{% static 'js/aircraft-detail.js' %}"></script>
 <script src="{% static 'js/aircraft-modal.js' %}"></script>

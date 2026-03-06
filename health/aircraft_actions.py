@@ -16,13 +16,16 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from django.conf import settings as django_settings
+
 from core.action_registry import (
     register_owner_actions,
     register_pilot_actions,
     register_read_pilot_write_owner,
 )
 from core.events import log_event
-from core.models import AircraftEvent
+from core.features import feature_available
+from core.models import AircraftEvent, KNOWN_FEATURES
 from core.serializers import (
     AircraftNoteNestedSerializer,
     AircraftNoteCreateUpdateSerializer,
@@ -58,7 +61,8 @@ register_owner_actions('components', 'remove_ad', 'compliance', 'remove_inspecti
 register_pilot_actions('update_hours', 'squawks', 'notes', 'oil_records', 'fuel_records',
                        'flight_logs', 'summary', 'documents', 'events')
 register_read_pilot_write_owner('ads', 'inspections', 'major_records',
-                                'oil_analysis', 'oil_analysis_ai_extract')
+                                'oil_analysis', 'oil_analysis_ai_extract',
+                                'features')
 
 
 class HealthAircraftActionsMixin:
@@ -166,6 +170,7 @@ class HealthAircraftActionsMixin:
                 many=True,
                 context={'request': request}
             ).data,
+            'features': {f: feature_available(f, aircraft) for f in KNOWN_FEATURES},
         })
 
     @action(detail=True, methods=['get'])
@@ -673,6 +678,53 @@ class HealthAircraftActionsMixin:
             FlightLogNestedSerializer(flight).data,
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=True, methods=['get', 'post'])
+    def features(self, request, pk=None):
+        """
+        Get or update feature flags for an aircraft.
+        GET  /api/aircraft/{id}/features/
+        POST /api/aircraft/{id}/features/  — owner only
+        Body: {"feature": "<name>", "enabled": true|false}
+        """
+        from core.models import AircraftFeature
+
+        aircraft = self.get_object()
+
+        if request.method == 'GET':
+            return Response({'features': {f: feature_available(f, aircraft) for f in KNOWN_FEATURES}})
+
+        # POST — owner only (enforced by registry)
+        feature_name = request.data.get('feature')
+        enabled = request.data.get('enabled')
+
+        if feature_name not in KNOWN_FEATURES:
+            return Response(
+                {'error': f'Unknown feature. Valid features: {KNOWN_FEATURES}'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if not isinstance(enabled, bool):
+            return Response(
+                {'error': 'enabled must be a boolean'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if feature_name in getattr(django_settings, 'DISABLED_FEATURES', []) and enabled:
+            return Response(
+                {'error': f'{feature_name!r} is disabled globally and cannot be enabled here'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        AircraftFeature.objects.update_or_create(
+            aircraft=aircraft,
+            feature=feature_name,
+            defaults={'enabled': enabled, 'updated_by': request.user},
+        )
+        log_event(
+            aircraft, 'aircraft',
+            f"Feature {'enabled' if enabled else 'disabled'}: {feature_name}",
+            user=request.user,
+        )
+        return Response({'features': {f: feature_available(f, aircraft) for f in KNOWN_FEATURES}})
 
     @action(detail=True, methods=['get'])
     def events(self, request, pk=None):

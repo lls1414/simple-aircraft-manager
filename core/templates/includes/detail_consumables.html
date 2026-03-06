@@ -2,21 +2,21 @@
         <div x-show="activePrimaryTab === 'consumables'" class="pf-v5-c-page__main-section">
             <div class="tab-subtab-bar">
                 <div class="pf-v5-c-toggle-group">
-                    <div class="pf-v5-c-toggle-group__item">
+                    <div class="pf-v5-c-toggle-group__item" x-show="featureOilConsumption">
                         <button class="pf-v5-c-toggle-group__button"
                                 :class="{ 'pf-m-selected': activeTab === 'oil' }"
                                 @click="activeTab = 'oil'">
                             Oil Usage
                         </button>
                     </div>
-                    <div class="pf-v5-c-toggle-group__item">
+                    <div class="pf-v5-c-toggle-group__item" x-show="featureFuelConsumption">
                         <button class="pf-v5-c-toggle-group__button"
                                 :class="{ 'pf-m-selected': activeTab === 'fuel' }"
                                 @click="activeTab = 'fuel'">
                             Fuel Usage
                         </button>
                     </div>
-                    <div class="pf-v5-c-toggle-group__item">
+                    <div class="pf-v5-c-toggle-group__item" x-show="featureOilAnalysis">
                         <button class="pf-v5-c-toggle-group__button"
                                 :class="{ 'pf-m-selected': activeTab === 'oil-analysis' }"
                                 @click="activeTab = 'oil-analysis'">
@@ -24,13 +24,13 @@
                         </button>
                     </div>
                 </div>
-                <button class="pf-v5-c-button pf-m-primary" x-show="canCreateConsumable && activeTab === 'oil'" @click="openOilModal()">
+                <button class="pf-v5-c-button pf-m-primary" x-show="canCreateConsumable && activeTab === 'oil' && featureOilConsumption" @click="openOilModal()">
                     <i class="fas fa-plus"></i> Add Oil Record
                 </button>
-                <button class="pf-v5-c-button pf-m-primary" x-show="canCreateConsumable && activeTab === 'fuel'" @click="openFuelModal()">
+                <button class="pf-v5-c-button pf-m-primary" x-show="canCreateConsumable && activeTab === 'fuel' && featureFuelConsumption" @click="openFuelModal()">
                     <i class="fas fa-plus"></i> Add Fuel Record
                 </button>
-                <template x-if="activeTab === 'oil-analysis' && canWrite">
+                <template x-if="activeTab === 'oil-analysis' && canWrite && featureOilAnalysis">
                     <div style="display: flex; gap: 0.5rem;">
                         <button class="pf-v5-c-button pf-m-secondary" @click="openOilAnalysisAiModal()">
                             <i class="fas fa-file-pdf"></i> Import from PDF
@@ -41,7 +41,7 @@
                     </div>
                 </template>
             </div>
-            <div x-show="activeTab === 'oil'">
+            <div x-show="activeTab === 'oil' && featureOilConsumption">
 
             <!-- Loading -->
             <div x-show="!oilLoaded" class="pf-v5-c-empty-state">
@@ -129,7 +129,7 @@
                 </template>
             </div>
             </div>
-            <div x-show="activeTab === 'fuel'">
+            <div x-show="activeTab === 'fuel' && featureFuelConsumption">
 
             <!-- Loading -->
             <div x-show="!fuelLoaded" class="pf-v5-c-empty-state">
@@ -219,7 +219,7 @@
             </div>
 
             <!-- Oil Analysis Tab -->
-            <div x-show="activeTab === 'oil-analysis'">
+            <div x-show="activeTab === 'oil-analysis' && featureOilAnalysis">
 
             <!-- Loading -->
             <div x-show="!oilAnalysisLoaded" class="pf-v5-c-empty-state">
