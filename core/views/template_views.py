@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
@@ -16,9 +18,8 @@ class AircraftDetailView(LoginRequiredMixin, TemplateView):
         import_models = list(settings.LOGBOOK_IMPORT_MODELS)
         extra = getattr(settings, 'LOGBOOK_IMPORT_EXTRA_MODELS', None)
         if extra:
-            import json as _json
             try:
-                import_models = import_models + _json.loads(extra)
+                import_models = import_models + json.loads(extra)
             except (ValueError, TypeError):
                 pass
         context['import_models'] = import_models

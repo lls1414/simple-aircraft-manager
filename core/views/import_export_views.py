@@ -1,16 +1,22 @@
+import io
 import logging
 import os
 import shutil
+import threading
 import uuid
+from datetime import date
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse, StreamingHttpResponse
 from django.views import View
 
 from core.events import log_event
+from core.export import export_aircraft_zip
+from core.import_export import run_aircraft_import_job, validate_archive_quick
 from core.models import Aircraft
 from core.permissions import has_aircraft_permission, user_can_create_aircraft
+from health.models import ImportJob
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +28,6 @@ class ExportView(LoginRequiredMixin, View):
     """
 
     def get(self, request, pk):
-        import io
-        from django.http import StreamingHttpResponse, Http404
-        from core.export import export_aircraft_zip, build_manifest
-
         try:
             aircraft = Aircraft.objects.get(pk=pk)
         except (Aircraft.DoesNotExist, ValueError):
@@ -34,8 +36,7 @@ class ExportView(LoginRequiredMixin, View):
         if not has_aircraft_permission(request.user, aircraft, 'owner'):
             return JsonResponse({'error': 'Permission denied'}, status=403)
 
-        from datetime import date as date_cls
-        filename = f"{aircraft.tail_number}_{date_cls.today().strftime('%Y%m%d')}.sam.zip"
+        filename = f"{aircraft.tail_number}_{date.today().strftime('%Y%m%d')}.sam.zip"
 
         # Build the ZIP into a BytesIO buffer and stream it
         buf = io.BytesIO()
@@ -63,10 +64,6 @@ class ImportView(LoginRequiredMixin, View):
     """
 
     def post(self, request):
-        import threading
-        from core.import_export import validate_archive_quick, run_aircraft_import_job
-        from health.models import ImportJob
-
         if not user_can_create_aircraft(request.user):
             return JsonResponse({'error': 'You do not have permission to import aircraft.'}, status=403)
 
@@ -173,8 +170,6 @@ class ImportJobStatusView(LoginRequiredMixin, View):
     """
 
     def get(self, request, job_id):
-        from health.models import ImportJob
-
         try:
             job = ImportJob.objects.get(pk=job_id)
         except ImportJob.DoesNotExist:

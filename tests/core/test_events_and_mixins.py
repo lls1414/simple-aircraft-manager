@@ -130,7 +130,6 @@ class TestEventLoggingMixinViaApi:
 
     def test_custom_event_name_overrides_are_used(self, aircraft, owner_user):
         """MajorRepairAlterationViewSet sets custom event_name_created — verify it's used."""
-        import datetime
         client = self._owner_client(owner_user)
         client.post(
             '/api/major-records/',

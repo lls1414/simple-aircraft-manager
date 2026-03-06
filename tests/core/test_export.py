@@ -3,8 +3,9 @@ Tests for aircraft ZIP export (core/export.py and ExportView).
 """
 import io
 import json
+import uuid
 import zipfile
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 import pytest
@@ -71,7 +72,6 @@ class TestStrConverter:
         assert _str(42) == '42'
 
     def test_str_with_uuid(self):
-        import uuid
         u = uuid.uuid4()
         assert _str(u) == str(u)
 
@@ -90,7 +90,6 @@ class TestDateConverter:
         assert result == '2024-06-15'
 
     def test_date_with_datetime_object(self):
-        from datetime import datetime
         dt = datetime(2024, 6, 15, 12, 0, 0)
         result = _date(dt)
         assert '2024-06-15' in result
@@ -350,7 +349,6 @@ class TestExportView:
         assert resp.status_code == 200
 
     def test_nonexistent_aircraft_returns_404(self, session_owner):
-        import uuid
         fake_id = uuid.uuid4()
         resp = session_owner.get(f'/api/aircraft/{fake_id}/export/')
         assert resp.status_code == 404

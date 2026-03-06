@@ -24,6 +24,7 @@ import io
 import json
 import logging
 import os
+import shutil
 import time
 from datetime import datetime
 from pathlib import Path
@@ -790,8 +791,6 @@ def run_import_job(job_id, tmpdir, image_paths, **kwargs):
     Intended to be called from a daemon thread.  All kwargs are forwarded
     to run_import() (collection_name, doc_name, doc_type, model, etc.).
     """
-    import shutil
-
     log = logging.getLogger(__name__)
 
     try:

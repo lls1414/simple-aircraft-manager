@@ -3,8 +3,11 @@ Unit tests for health/oil_analysis_parsers.py
 
 These are pure unit tests — no DB access needed.
 """
-from unittest.mock import MagicMock, patch
+import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from health.oil_analysis_parsers import _parse_number, _parse_date, _detect_lab, _HEX_RE
 
@@ -151,14 +154,12 @@ class TestParseDispatch:
 
     def test_unrecognized_lab_raises_value_error(self):
         """parse() with unrecognized lab text raises ValueError."""
-        import sys
-        import pytest as _pytest
         from health.oil_analysis_parsers import parse
 
         mock_fitz = self._make_mock_fitz('Random oil lab report with no known identifier')
 
         with patch.dict(sys.modules, {'fitz': mock_fitz}):
-            with _pytest.raises(ValueError, match='Unrecognized'):
+            with pytest.raises(ValueError, match='Unrecognized'):
                 parse(Path('/fake/report.pdf'))
 
     def test_blackstone_lab_detected_in_text(self):

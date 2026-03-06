@@ -2,6 +2,7 @@
 Tests for AircraftViewSet custom actions.
 """
 import datetime
+import uuid
 
 import pytest
 
@@ -707,7 +708,6 @@ class TestDeleteShareToken:
         assert not AircraftShareToken.objects.filter(id=share_token_status.id).exists()
 
     def test_deleting_nonexistent_token_returns_404(self, owner_client, aircraft):
-        import uuid
         url = f'/api/aircraft/{aircraft.id}/share_tokens/{uuid.uuid4()}/'
         response = owner_client.delete(url)
         assert response.status_code == 404

@@ -8,6 +8,7 @@ import tempfile
 import unittest.mock
 import uuid
 import zipfile
+from decimal import Decimal
 
 import pytest
 
@@ -460,7 +461,6 @@ class TestV1BackwardCompatibility:
         job.refresh_from_db()
         assert job.status == 'completed'
         ac = Aircraft.objects.get(tail_number='N77001')
-        from decimal import Decimal
         assert ac.tach_time == Decimal('150.0')
 
     def test_v1_manifest_validates_successfully(self):

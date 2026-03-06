@@ -14,6 +14,7 @@ Environment variables:
     ANTHROPIC_API_KEY   Required (unless --upload-only or --dry-run).
 """
 
+import os
 from pathlib import Path
 
 from django.conf import settings
@@ -215,8 +216,6 @@ class Command(BaseCommand):
 
     def _dry_run(self, aircraft, image_files, options, model_id, provider):
         """Extract via AI and display results without writing to DB."""
-        import os
-
         from health.logbook_import import _extract_all_entries
 
         if provider == 'anthropic':

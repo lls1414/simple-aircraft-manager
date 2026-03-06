@@ -5,18 +5,18 @@ All action methods are moved here verbatim from core/views.py.
 They reference self.get_object(), self.request, etc. — works via MRO.
 """
 import re
+import tempfile
 import threading
 from datetime import date as date_cls
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+from django.conf import settings as django_settings
 from django.db import transaction
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from django.conf import settings as django_settings
 
 from core.action_registry import (
     register_owner_actions,
@@ -33,7 +33,7 @@ from core.serializers import (
     AircraftSerializer,
 )
 from health.models import (
-    Component, LogbookEntry, Squawk, Document, DocumentCollection,
+    Component, ImportJob, LogbookEntry, Squawk, Document, DocumentCollection,
     ConsumableRecord, AD, ADCompliance, InspectionType, InspectionRecord,
     MajorRepairAlteration, OilAnalysisReport, FlightLog,
 )
@@ -51,6 +51,7 @@ from health.serializers import (
     OilAnalysisReportSerializer, OilAnalysisReportCreateUpdateSerializer,
     FlightLogNestedSerializer, FlightLogCreateUpdateSerializer,
 )
+from health.oil_analysis_import import run_oil_analysis_job
 from health.services import (
     end_of_month_after, ad_compliance_status, inspection_compliance_status,
     STATUS_LABELS,
@@ -834,16 +835,12 @@ class HealthAircraftActionsMixin:
         provider = request.data.get('provider', 'parser')
 
         # Write to a temp file; the job runner is responsible for cleanup
-        import tempfile
-        from pathlib import Path as _Path
         suffix = Path(uploaded_file.name).suffix.lower() if uploaded_file.name else '.pdf'
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             for chunk in uploaded_file.chunks():
                 tmp.write(chunk)
-            tmp_path = _Path(tmp.name)
+            tmp_path = Path(tmp.name)
 
-        from health.models import ImportJob
-        from health.oil_analysis_import import run_oil_analysis_job
         job = ImportJob.objects.create(
             aircraft=aircraft,
             user=request.user,

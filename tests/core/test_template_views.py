@@ -2,6 +2,8 @@
 Tests for template views in core/views.py
 Uses Django test Client (not DRF APIClient) for HTML views.
 """
+import json
+
 import pytest
 from django.test import Client
 
@@ -37,7 +39,6 @@ class TestHealthzView:
         assert resp.status_code == 200
 
     def test_healthz_returns_ok_status(self):
-        import json
         c = Client()
         resp = c.get('/healthz/')
         data = json.loads(resp.content)
@@ -148,7 +149,6 @@ class TestUserSearchView:
         # Query shorter than 2 chars returns []
         resp = auth_client.get('/api/user-search/?q=o')
         assert resp.status_code == 200
-        import json
         data = json.loads(resp.content)
         assert data == []
 
@@ -160,7 +160,6 @@ class TestUserSearchView:
     def test_search_finds_matching_user(self, auth_client, owner_user):
         resp = auth_client.get(f'/api/user-search/?q={owner_user.username[:3]}')
         assert resp.status_code == 200
-        import json
         data = json.loads(resp.content)
         usernames = [u['username'] for u in data]
         assert owner_user.username in usernames
