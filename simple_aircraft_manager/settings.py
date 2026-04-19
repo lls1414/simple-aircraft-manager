@@ -31,6 +31,10 @@ ALLOWED_HOSTS = [ "simple-aircraft-manager.onrender.com",
     ".onrender.com",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://simple-aircraft-manager.onrender.com",
+]
+
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
